@@ -1,2 +1,198 @@
 Maven and Gradle are build tools for Java based projects
 Maven widely usedly in industry
+
+Steps:
+
+> Provision and EC2 instance which will server as the build server
+> Install java 
+( depending on the IMi used get installing instructions from documention/google)
+> For Amazon Linux:
+$ sudo yum install java-devel
+$ java -version 
+
+> Download Maven
+
+$ sudo su
+$ cd /opt
+$ ls
+$ wget https://dlcdn.apache.org/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz
+
+(download of your version of Maven software)
+$ ls
+apache-maven-3.8.6-bin.tar.gz  aws  rh
+$ tar -xvf apache-maven-3.8.6-bin.tar.gz
+(unzip tar file) 
+$ rm apache-maven-3.8.6-bin.tar.gz
+(delete zipfile)
+$cd apache-maven-3.8.6/
+$ ls
+$ cd bin
+$ls
+$ cd ..
+$ export PATH=$PATH:/opt/apache-maven-3.8.6/bin
+(adding bin directory to path variable$mvn to maven)
+$ mvn -v
+
+> Clone a source code from github
+$ cd  (go to root dir and out of opt dir )
+> Install git first
+$ yum install git
+$ git --version
+$ git clone https://github.com/Noettie/Project1.git
+$ ls 
+$ cd Project1
+pom.xml src 
+$ vim pom.xml
+
+pom.xml has the build commands and the src has the app source code developed by developers
+> The pom.xml has the target directory where the artefact will be when the build is complete
+deveps and the packaging is .war
+$ ls -a
+> Build the artefact using maven
+$ mvn package
+$ ls (a new dir called target should be there if buuild is success
+$ cd ..
+$ ls
+> Running the build a second time takes a much shorter period since all the depency files are available locally
+> First build slightly longer to download dependencies remotely
+> The dependencies are available in a dir .m2
+$ cd /opt
+$ ls
+$ cd apache-maven.....
+> NB: Command to find a directory: 
+$ find / -name .m2
+$ cd 
+$ ls -la
+> Should find a dir .m2
+$ cd Project1
+> Change the pom.xml from war to jar
+> clean and build 
+$ mvn clean package
+$ cd target
+> The .war earlier build is removed and the .jar build is created
+> INSTALL : install the package into the local repo, for use as a dependency in other projects locally
+> IF requirement is to deploy artefact into local server for use in other projects
+> Making the .jar file available in the local repo in :
+$ /root/.m2/repository/org/example/devops/1.0-SNAPSHOT/devops-1.0-SNAPSHOT.pom
+> The artefact wil now be available in local repository
+> If you want to deploy into remote repo to share with other developers use the deploy command
+> DEPLOY : done in build environment, copies the final package to the remote repo for sharing with other developers and ptojects
+$ mvn deploy
+
+> The artefact should be preserved
+> For sourec code preserving this is done in Github and it is accessible by others
+> Aretefacts are preserved in NEXUS or Jfrog
+> THese are repository management tools
+> These tools are used instead of github as the build file can be large after depencies ar downloaded
+> There is a restriction of package storage in github which works for source code
+
+# Nexus 
+
+Provides storage to preserve multiple versions of artefacts
+
+* Builds take alot of time
+* Several artefacts are generated and hence versions are stored in nexus so they can rebuilt and takes less time
+
+Steps to install Nexus
+
+> Lanuch EC2 instance of t2.medium type
+> To provison maven and nexus you require powerful servers and t2.micro will not suffice
+> Network setting :open port 8081 for nexus
+>Install java
+
+$ sudo yum install java-1.8.0-open-jdk-devel
+$ java -version
+$ sudo su
+$ cd /opt
+$ wget https://download.sonatype.com/nexus/3/nexus-3.42.0-01-unix.tar.gz
+$ ls
+$ tar -xvf nexus-3.42.0-01-unix.tar.gz
+$ ls
+$ rm <zipfile>
+$ rm *.gz
+$ cd nexus
+bin  deploy  etc  lib  NOTICE.txt  OSS-LICENSE.txt  PRO-LICENSE.txt  public  replicator  system
+
+> To start Nexus cd into bin dir
+$ cd bin
+$ contrib  nexus  nexus.rc  nexus.vmoptions
+> Nexus should be started as a regular user not root user
+> If you start applicastions as a root user , when you intergrate with other tools, access to some packages is denied
+$ cd ..
+$ bin  deploy  etc  lib  NOTICE.txt  OSS-LICENSE.txt  PRO-LICENSE.txt  public  replicator  system
+> Check permissions for nexus file
+$ cd ..
+$ ls -l
+
+drwxr-xr-x  4 root root  33 Oct 12 18:57 aws
+drwxr-xr-x 10 root root 181 Nov  1 21:26 nexus-3.42.0-01
+drwxr-xr-x  2 root root   6 Aug 16  2018 rh
+drwxr-xr-x  3 root root  20 Nov  1 21:26 sonatype-work
+
+> This shows that the user for the nexus file is root
+> Never start apps with root permisions because of high level of restrictions when trying to integreate maven with nexus
+> Change the ownership of the files to ec2-user
+> NB : Change file ownserhip of nexux dir to ec2-user
+> NB: CHnage file ownership of sonatype dir to ec2-user
+$ cd /opt
+$ chown ec2-user:ec2-user nexus-3.42.0-01/
+$ cd nexus
+$ ls -l
+drwxr-xr-x  3 ec2-user ec2-user    73 Nov  1 21:26 bin
+drwxr-xr-x  2 ec2-user ec2-user    26 Nov  1 21:26 deploy
+drwxr-xr-x  7 ec2-user ec2-user   104 Nov  1 21:26 etc
+drwxr-xr-x  5 ec2-user ec2-user   239 Nov  1 21:26 lib
+-rw-r--r--  1 ec2-user ec2-user   651 Sep 23 17:43 NOTICE.txt
+-rw-r--r--  1 ec2-user ec2-user 17321 Sep 23 17:43 OSS-LICENSE.txt
+-rw-r--r--  1 ec2-user ec2-user 41954 Sep 23 17:43 PRO-LICENSE.txt
+drwxr-xr-x  2 ec2-user ec2-user  4096 Nov  1 21:26 public
+drwxr-xr-x  3 ec2-user ec2-user    59 Nov  1 21:26 replicator
+drwxr-xr-x 23 ec2-user ec2-user  4096 Nov  1 21:26 system
+
+> All files have changed ownership tp ec2-user
+$ cd bin
+$ ls -l
+drwxr-xr-x 2 ec2-user ec2-user  4096 Nov  1 21:26 contrib
+-rwxr-xr-x 1 ec2-user ec2-user 18620 Sep 23 17:43 nexus
+-rw-r--r-- 1 ec2-user ec2-user    15 Sep 23 17:43 nexus.rc
+-rw-r--r-- 1 ec2-user ec2-user  1635 Sep 23 17:43 nexus.vmoptions
+> nexus file is owned by ec2-user
+>The sonatype-work dir ownership should be changed
+> This dir holds the user dir of nexus: username password
+> In one of the files in nexus3 dir is the password that is used to access nexus
+$ cd nexus3
+$ cd ..
+$ cd ..
+$ cd /opt
+$ cd /bin
+$ vim nexcus.rc
+
+> this is done to state with which user credentials nexux should be started
+~  #run_as_user="ec2-user"
+NB: Uncomment the command so that the scripts actually executes as ec2-user
+~ run_as_user="ec2-user
+~ save and Quit
+> Connect to nexus using pubIP of server
+> Signing in requires password which is located in sonatype-work dir given
+$ cd /opt
+$ cd nexus3
+> no access to elasticsearch if you are root user
+$ cat admin.password
+> Copy password onto sonatype UI 
+> Maven snapshots stores various versions of the build
+> Maven releases stores the build that have been marked for release
+> In build_server cd into /opt
+$ cd opt
+apache-maven-3.8.6  aws  rh
+apache-maven-3.8.6  aws  rh
+$ cd
+$ cd Project1
+pom.xml  src  target
+> The pom.xml file has the snapshhot which must be stored in nexus
+> Nexus and maven must be integreted
+> To do this , In the pom.xml file we have to add a dependecy to say once the artifact is 
+
+
+
+
+
