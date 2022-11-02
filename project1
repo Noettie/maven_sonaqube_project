@@ -191,8 +191,139 @@ pom.xml  src  target
 > The pom.xml file has the snapshhot which must be stored in nexus
 > Nexus and maven must be integreted
 > To do this , In the pom.xml file we have to add a dependecy to say once the artifact is 
+> On the site : https://www.baeldung.com/maven-deploy-nexus
+> n order for Maven to be able to deploy the artifacts it creates in the package phase of the build, it needs to define the repository information where the packaged artifacts will be deployed,
+> via the distributionManagement element:
+> Copy and paste this code into the pom.xml below "properties" (before dependencies)
+<distributionManagement>
+   <snapshotRepository>
+      <id>nexus-snapshots</id>
+      <url>http://localhost:8081/nexus/content/repositories/snapshots</url>
+   </snapshotRepository>
+</distributionManagement>
+
+> Change url by logging onto sonatype:
+ Browse ---> Maven snapshots---> HTML---> click on HTML and get the URL 
+> Replace with the one on the link :
+~ http://174.129.129.225:8081/service/rest/repository/browse/maven-snapshots/
+> This is url of Maven snapshots directory
+> Save and Quit
+
+  NB command to set a temporary path : export PATH=$PATH:/Oopt/apache-maven-3.8.6/bin
+  
+  > Important to know how to set a permanent path by adding to a bash file
+  
+  > cd Project1
+  > mvn clean package
+  > cd target
+  > ls > A new artefact is generated and old one is removed
+  > The artefact should be moved to the nexus repo in the maven-snapshot dir
+  $ mvn deploy
+  > This results in an error because there is no connection between the two servers, the build server and nexus server
+  > Generate a token from nexus that will be used with maven 
+  > sonatype: Admin---> security--->
+  > If token not found copy: 
+ 
+  <server>
+      <id>nexus-snapshots</id>
+      <username>admin</username>
+      <password>admin123</password>
+    </server>
+  
+  FROM the site : https://blog.sonatype.com/using-nexus-3-as-your-repository-part-1-maven-artifacts
+  
+  and paste it on the apache-maven file
+  
+   cd Project1/
+  132  ls
+  133  cd
+  134  cd /opt
+  135  ls
+  136  cd apache-maven-3.8.6/
+  137  ls
+  138  cd conf/
+  139  ls
+  140  vim settings.xml
+  > Copy and paste:
+  
+   <proxy>
+      <id>optional</id>
+      <active>true</active>
+      <protocol>http</protocol>
+      <username>proxyuser</username>
+      <password>proxypass</password>
+      <host>proxy.host.net</host>
+      <port>80</port>
+      <nonProxyHosts>local.net|some.host.com</nonProxyHosts>
+    </proxy>
+    -->
+  </proxies>
+
+  <!-- servers
+   | This is a list of authentication profiles, keyed by the server-id used within the system.
+   | Authentication profiles can be used whenever maven must make a connection to a remote server.
+   |-->
+  <servers>
+        <server>
+      <id>nexus-snapshots</id>
+      <username>admin</username>
+      <password>admin123</password>
+    </server>
+
+    <!-- server
+     | Specifies the authentication information to use when connecting to a particular server, identified by
+     | a unique name within the system (referred to by the 'id' attribute below).
+     |
+     | NOTE: You should either specify username/password OR privateKey/passphrase, since these pairings are
+-- INSERT --                                                                                                       
+> Change password above to sonartype admin password
+
+> CONFIGURE maven path:
+$ cd ..
+$ cd ..
+$ export PATH=$PATH:/opt/apache-maven-3.8.6/bin
+> Go back to current user workspace where project is present
+$ cd
+$ ls
+$cd Project1
+$ ls
+$ mvn deploy
+$ vim pom.xml
+$ mvn clean package
+Build should be success
+
+> Add distribution management tag to push artifact into maven-snapshots repo
+> Below properties:
+> Copy from: https://www.baeldung.com/maven-deploy-nexus
+
+> NB : Change the URL to the on the nexux maven-snapshot site
 
 
 
+ </properties>
+  <distributionManagement>
+
+
+   <snapshotRepository>
+      <id>nexus-snapshots</id>
+      <url>http://174.129.129.225:8081/repository/maven-snapshots/</url>
+   </snapshotRepository>
+</distributionManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+
+
+>>> mvn Deploy
+
+> the artifact should be available onn the nexus maven-snapshots repo
+
+> Signout and then signin to sonatype
+> Artifact should be on the maven-snapshot
+>If mvn deploy is repeated another snap-shot will be saved with a different time stamp
 
 
